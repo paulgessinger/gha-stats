@@ -11,11 +11,14 @@ from datetime import datetime, date, timedelta
 import aiohttp
 import gidgethub
 import typer
+import pandas
 from gidgethub.aiohttp import GitHubAPI
 import cachetools
 import peewee
-from aioitertools import more_itertools as mi
+import more_itertools as mi
+import matplotlib.pyplot
 import dateutil.parser
+import sqlite3
 
 from gha_stats import __version__, config
 from gha_stats.database import database, Job, Run
@@ -32,17 +35,26 @@ def make_sync(fn):
     return wrapped
 
 
+def prepare_database(dbfile: Path):
+    database.init(dbfile)
+    database.connect()
+    database.create_tables([Job, Run])
+
+
 @cli.command(help="")
 @make_sync
 async def collect(
-    repo: str,
+    database: Path = typer.Argument(..., dir_okay=False, exists=True),
+    repo: str = typer.Argument(...),
     token: str = typer.Option(
         config.GH_TOKEN,
         help="Github API token to use. Can be supplied with environment variable GH_TOKEN",
     ),
     since: Optional[datetime] = None,
-    skip: bool = False,
+    skip: bool = True,
 ):
+    prepare_database(database)
+
     cache = cachetools.LRUCache(maxsize=500)
     if since is not None:
         since: date = since.date()
@@ -136,11 +148,74 @@ async def collect(
             Job.insert_many(jobs).on_conflict_replace().execute()
 
 
+@cli.command()
+def plot(
+    database: Path = typer.Argument(..., dir_okay=False, exists=True),
+    output: Path = typer.Option(Path.cwd(), "--output", "-o", file_okay=False),
+    format: str = typer.Option("pdf", "--format", "-f"),
+):
+    prepare_database(database)
+    if not output.exists():
+        output.mkdir(parents=True)
+
+    con = sqlite3.connect(database)
+
+    df = pandas.read_sql(
+        "SELECT a.*, r.head_branch, r.name as run_name FROM job as a JOIN run as r ON a.run_id = r.id WHERE r.created_at > '2022-01-01 00:00:00+00:00' AND r.conclusion != 'skipped' ORDER BY r.created_at ASC",
+        con,
+    )
+
+    df.started_at = pandas.to_datetime(df.started_at)
+    df.completed_at = pandas.to_datetime(df.completed_at)
+    df["duration"] = (df.completed_at - df.started_at).dt.total_seconds()
+    df["day"] = df.started_at.dt.date
+    df["fqn"] = df[["run_name", "name"]].agg(" / ".join, axis=1)
+
+    for w, wdf in df[(df.conclusion == "success")].groupby("run_name"):
+        for i, chunk in enumerate(mi.chunked(wdf.groupby("name"), 6)):
+            fig, ax = matplotlib.pyplot.subplots(figsize=(15, 5))
+            for g, gdf in chunk:
+                # display(gdf)
+                gdf.duration /= 60
+                ddf = (
+                    gdf.resample("d", on="started_at")
+                    .agg({"duration": ["mean", "std", "size"]})
+                    .dropna()
+                )
+                if ddf.empty:
+                    continue
+                # if np.all(ddf.duration < 5*60):
+                #     continue
+                # display(ddf)
+                # display(ddf.columns)
+                # ddf.index = ddf[day
+                # ddf.duration /= 60
+                # ddf.plot(y="mean", ax=ax, label=g)
+                up = ddf["duration", "mean"] + ddf["duration", "std"]
+                down = ddf["duration", "mean"] - ddf["duration", "std"]
+                pc = ax.fill_between(ddf.index, down, up, alpha=0.2)
+                ax.plot(
+                    ddf.index,
+                    ddf["duration", "mean"],
+                    label=f"{w} / {g}",
+                    c=pc.get_fc(),
+                    alpha=1,
+                )
+                # print(ax.lines[-1].get_color())
+                # ax.plot(ddf.index, ddf["duration", "std"], label=g)
+
+            ax.legend(ncol=3)
+            ymin, ymax = ax.get_ylim()
+            ax.set_ylim(ymin, 1.2 * ymax)
+            ax.set_xlabel("date")
+            ax.set_ylabel("duration [min]")
+            fig.tight_layout()
+            fig.savefig(str(output / f"citime_{w}_{i}.{format}"))
+
+
 @cli.callback()
 def main():
-    database.init(config.DATABASE_URL)
-    database.connect()
-    database.create_tables([Job, Run])
+    pass
 
 
 main.__doc__ = """
