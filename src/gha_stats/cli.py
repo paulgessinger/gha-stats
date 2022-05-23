@@ -213,6 +213,13 @@ def plot(
             fig.savefig(str(output / f"citime_{w}_{i}.{format}"))
 
 
+@cli.command()
+def init(
+    database: Path = typer.Argument(..., dir_okay=False),
+):
+    prepare_database(database)
+
+
 @cli.callback()
 def main():
     pass
