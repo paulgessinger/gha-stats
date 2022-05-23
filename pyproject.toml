@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gha-stats"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Paul Gessinger <hello@paulgessinger.com>"]
 packages = [
@@ -15,7 +15,12 @@ aiohttp = "^3.7.4"
 gidgethub = "^5.0.1"
 typer = "^0.4.1"
 peewee = "^3.14.10"
-pysqlite3 = "^0.4.7"
+pysqlite3 = [
+    { version = '^0.4.7', platform = 'darwin' },
+]
+pysqlite3-binary = [
+    { version = '^0.4.7', platform = 'linux' },
+]
 cachetools = "^5.1.0"
 more-itertools = "^8.13.0"
 python-dateutil = "^2.8.2"

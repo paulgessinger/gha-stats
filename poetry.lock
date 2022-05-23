@@ -416,6 +416,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "pysqlite3-binary"
+version = "0.4.7.post5"
+description = "DB-API 2.0 interface for Sqlite 3.x"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
@@ -541,7 +549,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "14ea1811e33543e992654511bce4215ca82d304aa3247d69ade650f4974c87fa"
+content-hash = "e6c5187f7a2133d2b42beaba9f7abc1048f38e3a857f1e3bc86648142dce358f"
 
 [metadata.files]
 aiohttp = [
@@ -1103,6 +1111,13 @@ pyparsing = [
 ]
 pysqlite3 = [
     {file = "pysqlite3-0.4.7.tar.gz", hash = "sha256:0352864898aa406beb762f4a620594c950a9a4430caab679bce574065698c8ac"},
+]
+pysqlite3-binary = [
+    {file = "pysqlite3_binary-0.4.7.post5-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:c025ed783a4612e4f64e01c8e9d6ad1eded8ec75a320d5ef61945a047374b5b1"},
+    {file = "pysqlite3_binary-0.4.7.post5-cp36-cp36m-manylinux_2_24_x86_64.whl", hash = "sha256:0e5d305aa2324044a92deca428e5729add1244ce12b90a5f7debdcc0b083a86b"},
+    {file = "pysqlite3_binary-0.4.7.post5-cp37-cp37m-manylinux_2_24_x86_64.whl", hash = "sha256:1cf437904e24e76a562c433ed08585eb6f776c7a6bc94a0c82fa1c8fad34f200"},
+    {file = "pysqlite3_binary-0.4.7.post5-cp38-cp38-manylinux_2_24_x86_64.whl", hash = "sha256:3357e6419f8906aa2a497d11c9ca5925bd82ce50309855bd2ad97805b9489169"},
+    {file = "pysqlite3_binary-0.4.7.post5-cp39-cp39-manylinux_2_24_x86_64.whl", hash = "sha256:979e79ba9e5dd97bc95d119b12a168347eba046475c1289feb976b3099a3d10e"},
 ]
 python-dateutil = [
     {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
