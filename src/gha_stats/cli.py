@@ -21,7 +21,7 @@ import dateutil.parser
 import sqlite3
 
 from gha_stats import __version__, config
-from gha_stats.database import database, Job, Run
+from gha_stats.database import database, Job, Run, prepare_database
 
 cli = typer.Typer()
 
@@ -35,10 +35,6 @@ def make_sync(fn):
     return wrapped
 
 
-def prepare_database(dbfile: Path):
-    database.init(dbfile)
-    database.connect()
-    database.create_tables([Job, Run])
 
 
 @cli.command(help="")

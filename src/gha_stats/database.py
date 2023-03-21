@@ -1,7 +1,13 @@
+from pathlib import Path
+
 import peewee
 
 database = peewee.SqliteDatabase(None)
 
+def prepare_database(dbfile: Path):
+    database.init(dbfile)
+    database.connect()
+    database.create_tables([Job, Run])
 
 class Model(peewee.Model):
     class Meta:
@@ -37,7 +43,7 @@ class Job(Model):
     html_url = peewee.TextField()
     status = peewee.CharField()
     conclusion = peewee.CharField(null=True)
-    started_at = peewee.DateTimeField()
-    completed_at = peewee.DateTimeField(null=True)
+    started_at = peewee.DateTimeField(index=True)
+    completed_at = peewee.DateTimeField(null=True, index=True)
     name = peewee.CharField()
     check_run_url = peewee.TextField()
